@@ -1,6 +1,14 @@
-from flask import Flask, request, render_template
+from flask import Flask, request, render_template, jsonify
 import json
 import sqlite3 as sql
+import classify
+import base64
+import os
+import gc
+
+import json
+import env
+from classify import init
 
 app = Flask(__name__)
 
@@ -77,5 +85,36 @@ def get_material_by_barCode(barCode):
         row = cur.execute("SELECT * FROM material WHERE barCode=%s;", [barCode]).fetchone()
         return json.dumps(row)
 
+# health check
+@app.route('/status')
+def health_check():
+    return 'Running!'
+
+
+# Performing image Recognition on Image, sent as bytes via POST payload
+@app.route('/detect', methods=["POST"])
+def detect():
+    gc.collect()
+    print(request.data)
+    imgBytes = request.data
+
+    imgdata = base64.b64decode(imgBytes)
+    # with open("temp.png", 'wb') as f:
+    #     f.write(imgdata)
+    # f.close()
+    # print("successfully receieved image")
+
+    # Pass image bytes to classifier
+    result = classify.analyse(imgdata)
+
+    # Return results as neat JSON object, using
+    result = jsonify(result)
+    print(result.json)
+
+    response_data = result.json
+
+    return response_data
+
 if __name__ == '__main__':
+    init()
     app.run()

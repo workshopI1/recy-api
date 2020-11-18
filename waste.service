@@ -1,0 +1,13 @@
+# systemd settings
+
+[Unit]
+Description=Waste recognition server
+After=docker.service
+Requires=docker.service
+ 
+[Service]
+Restart=always
+ExecStart=/usr/bin/docker run --rm -p 8765:8080 zhuharev/waste-detection-server
+
+[Install]
+WantedBy=local.target

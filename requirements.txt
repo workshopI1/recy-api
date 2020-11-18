@@ -1,0 +1,10 @@
+Flask==1.1.1
+numpy==1.18.1
+oauth==1.0.1
+oauth2client==3.0.0
+Pyrebase==3.0.27
+tensorboard==2.3.0
+tensorflow==2.3.0
+tensorflow-estimator==2.3.0
+termcolor==1.1.0
+requests==2.11.1
