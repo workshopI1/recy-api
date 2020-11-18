@@ -63,5 +63,19 @@ def add_recycling():
         con.commit()
         return ('row added')
 
+@app.route('/recycling/get/<id>', methods=['GET'])
+def get_recycling_by_id(id):
+    with sql.connect('workshop.db') as con:
+        cur = con.cursor()
+        row = cur.execute("SELECT * FROM recycling WHERE Id=%s;", id).fetchone()
+        return json.dumps(row)
+
+@app.route('/material/get/<barCode>', methods=['GET'])
+def get_material_by_barCode(barCode):
+    with sql.connect('workshop.db') as con:
+        cur = con.cursor()
+        row = cur.execute("SELECT * FROM material WHERE barCode=%s;", [barCode]).fetchone()
+        return json.dumps(row)
+
 if __name__ == '__main__':
     app.run()
