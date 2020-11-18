@@ -1,4 +1,4 @@
-from flask import Flask, request
+from flask import Flask, request, render_template
 import json
 import sqlite3 as sql
 
@@ -7,7 +7,7 @@ app = Flask(__name__)
 
 @app.route('/')
 def hello_world():
-    return 'Hello World'
+    return render_template('menu.html')
 
 @app.route('/waste/get', methods=['GET'])
 def get_wastes():
@@ -34,8 +34,11 @@ def get_materials():
         return json.dumps([dict(row) for row in rows])
 
 @app.route('/material/add', methods=['POST'])
-def add_material(name, barCode, id_recycling):
+def add_material():
     with sql.connect('workshop.db') as con:
+        name = request.args.get('name')
+        barCode = request.args.get('barCode')
+        id_recycling = request.args.get('idRecycling')
         cur = con.cursor()
         cur.execute("INSERT INTO material (name, barCode, id_recycling) VALUES(?,?,?)", (name, barCode, id_recycling))
         con.commit()
@@ -45,9 +48,18 @@ def add_material(name, barCode, id_recycling):
 def add_waste():
     with sql.connect('workshop.db') as con:
         name = request.args.get('name')
-        id_material = request.args.get('id_material')
+        id_material = request.args.get('idMaterial')
         cur = con.cursor()
         cur.execute("INSERT INTO waste (name, id_material) VALUES(?,?)", (name,id_material))
+        con.commit()
+        return ('row added')
+
+@app.route('/recycling/add', methods=['POST'])
+def add_recycling():
+    with sql.connect('workshop.db') as con:
+        name = request.args.get('name')
+        cur = con.cursor()
+        cur.execute("INSERT INTO recycling (name) VALUES (?)", (name))
         con.commit()
         return ('row added')
 
