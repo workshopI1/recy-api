@@ -28,7 +28,7 @@ def getRecyclingTypeByBarcode(barcode):
 	finally:
 		cur.close()
 
-		@app.route('/barcode/<barcode>', methods=["GET"])
+@app.route('/barcode/<barcode>', methods=["GET"])
 def getRecyclingTypeByBarcode(barcode):
 	try:
 		cur = mysql.connection.cursor()
