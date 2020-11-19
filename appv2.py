@@ -45,9 +45,10 @@ def getRecyclingTypeByBarcode(barcode):
 def addWaste():
 	name = request.form.get('name')
 	id_material = request.form.get('id_material')
+	barcode = request.form.get('barcode')
 	try:
 		cur = mysql.connection.cursor()
-		cur.execute("INSERT INTO waste(name,id_material) VALUES (%s,%s)",[name,id_material])
+		cur.execute("INSERT INTO waste(name,id_material,barcode) VALUES (%s,%s,%s)",[name,id_material,barcode])
 		mysql.connection.commit()
 		return 'Added'
 	except Exception as e:
@@ -86,6 +87,21 @@ def getWastes():
 	finally:
 		cur.close()
 
+@app.route('/materials', methods=["GET"])
+def getMaterials():
+	try:
+		cur = mysql.connection.cursor()
+		result = cur.execute("SELECT * FROM materials")
+		if result > 0 :
+			materialsDetails = cur.fetchall()
+			return jsonify(materialsDetails),200
+		else:
+			return 'Erreur'
+	except Exception as e:
+		return 'Erreur'
+	finally:
+		cur.close()
+		
 # health check
 @app.route('/status')
 def health_check():
