@@ -28,11 +28,12 @@ mysql = MySQL(app)
 def getRecyclingTypeByBarcode(barcode):
 	try:
 		cur = mysql.connection.cursor()
-		cur.execute("SELECT type,materials.name FROM recycling JOIN materials ON recycling.id = materials.id_recycling JOIN waste ON materials.id = waste.id_material WHERE waste.barcode=%s",[barcode])
+		cur.execute("SELECT type,materials.name,waste.name FROM recycling JOIN materials ON recycling.id = materials.id_recycling JOIN waste ON materials.id = waste.id_material WHERE waste.barcode=%s",[barcode])
 		res = cur.fetchone()
+		final=json.dumps({"name": res[2], "material": res[1], "trash": res[0]}, sort_keys=True)
 		cur.close()
 		if res != None:
-			return jsonify(res),200
+			return final,200
 		else:
 			return 'Erreur'
 	except Exception as e:
@@ -51,6 +52,22 @@ def addWaste():
 		return 'Added'
 	except Exception as e:
 		return e.__str__()
+	finally:
+		cur.close()
+		
+@app.route('/idMaterial/<id>', methods=["GET"])
+def getRecyclingTypeByIdMaterial(id):
+	try:
+		cur = mysql.connection.cursor()
+		cur.execute("SELECT type,materials.name,waste.name FROM recycling JOIN materials ON recycling.id = materials.id_recycling JOIN waste ON materials.id = waste.id_material WHERE id_material=%s",id)
+		res = cur.fetchone()
+		final=json.dumps({"name": res[2], "material": res[1], "trash": res[0]}, sort_keys=True)
+		if res != None:
+			return final,200
+		else:
+			return 'Erreur'
+	except Exception as e:
+		return 'Erreur'
 	finally:
 		cur.close()
 
