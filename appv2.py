@@ -43,9 +43,10 @@ def getRecyclingTypeByBarcode(barcode):
 		
 @app.route('/add/Waste/', methods=["POST"])
 def addWaste():
-	name = request.form.get('name')
-	id_material = request.form.get('id_material')
-	barcode = request.form.get('barcode')
+	json_data = request.get_json()
+	name = json_data['name']
+	id_material = json_data['id_material']
+	barcode = json_data['barcode']
 	try:
 		cur = mysql.connection.cursor()
 		cur.execute("INSERT INTO waste(name,id_material,barcode) VALUES (%s,%s,%s)",[name,id_material,barcode])
