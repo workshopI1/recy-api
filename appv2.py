@@ -131,7 +131,36 @@ def detect():
 
     response_data = result.json
 
-    return response_data
+    materialName = max(response_data.keys(), key=(lambda k: response_data[k]))
+    score = response_data[materialName]
+
+    listeMateriaux = {"cardboard":"carton",
+                     "glass":"verre",
+                     "trash":"déchet non recyclable",
+                     "metal":"aluminium",
+                     "plastic":"plastique",
+                     "paper":"papier"
+                    }
+
+    materiauNom = listeMateriaux[materialName]
+
+    if score > 0.6 and materiauNom != None:
+        try:
+            cur = mysql.connection.cursor()
+            cur.execute(
+                "SELECT type FROM recycling JOIN materials ON recycling.id = materials.id_recycling WHERE materials.name =%s",materiauNom)
+            typeRecycling = cur.fetchone()
+            if typeRecycling != None:
+                #return jsonify(typeRecycling), 200
+                return typeRecycling, 200
+            else:
+                return 'Erreur'
+        except Exception as e:
+            return 'Erreur'
+        finally:
+            cur.close()
+    else:
+        return "Materiau non reconnu"
 
 if __name__ == "__main__":
 	init()
