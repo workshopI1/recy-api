@@ -27,22 +27,6 @@ def getRecyclingTypeByBarcode(barcode):
 		return 'Erreur'
 	finally:
 		cur.close()
-
-@app.route('/barcode/<barcode>', methods=["GET"])
-def getRecyclingTypeByBarcode(barcode):
-	try:
-		cur = mysql.connection.cursor()
-		cur.execute("SELECT type FROM recycling JOIN materials ON recycling.id = materials.id_recycling JOIN waste ON materials.id = waste.id_material WHERE waste.barcode=%s",[barcode])
-		res = cur.fetchone()
-		cur.close()
-		if res != None:
-			return jsonify(res),200
-		else:
-			return 'Erreur'
-	except Exception as e:
-		return 'Erreur'
-	finally:
-		cur.close()
 		
 @app.route('/add/Waste/', methods=["POST"])
 def addWaste():
