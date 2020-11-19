@@ -1,11 +1,11 @@
 -- phpMyAdmin SQL Dump
--- version 4.9.1
+-- version 4.9.2
 -- https://www.phpmyadmin.net/
 --
--- Hôte : 127.0.0.1
--- Généré le :  jeu. 19 nov. 2020 à 14:10
--- Version du serveur :  10.4.8-MariaDB
--- Version de PHP :  7.3.11
+-- Hôte : 127.0.0.1:3306
+-- Généré le :  jeu. 19 nov. 2020 à 16:10
+-- Version du serveur :  10.4.10-MariaDB
+-- Version de PHP :  7.3.12
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 SET AUTOCOMMIT = 0;
@@ -28,10 +28,13 @@ SET time_zone = "+00:00";
 -- Structure de la table `materials`
 --
 
-CREATE TABLE `materials` (
+DROP TABLE IF EXISTS `materials`;
+CREATE TABLE IF NOT EXISTS `materials` (
   `id` int(11) NOT NULL,
   `name` varchar(50) NOT NULL,
-  `id_recycling` int(11) NOT NULL
+  `id_recycling` int(11) NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `Id_recycling` (`id_recycling`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
@@ -40,10 +43,11 @@ CREATE TABLE `materials` (
 
 INSERT INTO `materials` (`id`, `name`, `id_recycling`) VALUES
 (1, 'carton', 1),
-(2, 'bouteille verre', 2),
-(3, 'plastique souple', 3),
-(4, 'aluminium', 3),
-(5, 'bouteille plastique', 1);
+(2, 'verre', 2),
+(3, 'déchet non recyclable', 3),
+(4, 'aluminium', 1),
+(5, 'plastique', 1),
+(6, 'papier', 1);
 
 -- --------------------------------------------------------
 
@@ -51,9 +55,11 @@ INSERT INTO `materials` (`id`, `name`, `id_recycling`) VALUES
 -- Structure de la table `recycling`
 --
 
-CREATE TABLE `recycling` (
+DROP TABLE IF EXISTS `recycling`;
+CREATE TABLE IF NOT EXISTS `recycling` (
   `id` int(11) NOT NULL,
-  `type` varchar(50) NOT NULL
+  `type` varchar(50) NOT NULL,
+  PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
@@ -71,56 +77,25 @@ INSERT INTO `recycling` (`id`, `type`) VALUES
 -- Structure de la table `waste`
 --
 
-CREATE TABLE `waste` (
-  `id` int(11) NOT NULL,
+DROP TABLE IF EXISTS `waste`;
+CREATE TABLE IF NOT EXISTS `waste` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(50) NOT NULL,
   `id_material` int(11) NOT NULL,
-  `barcode` varchar(50) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  `barcode` varchar(50) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `Id_material` (`id_material`)
+) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4;
 
 --
 -- Déchargement des données de la table `waste`
 --
 
 INSERT INTO `waste` (`id`, `name`, `id_material`, `barcode`) VALUES
-(1, 'pitch', 3, '5202462035'),
+(1, 'pitch', 1, '5202462035'),
 (2, 'boite_cereale', 1, '552362462035'),
 (3, 'chouffe33', 4, '5554682462035'),
 (4, 'jus innocent', 5, '5038862135443');
-
---
--- Index pour les tables déchargées
---
-
---
--- Index pour la table `materials`
---
-ALTER TABLE `materials`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `Id_recycling` (`id_recycling`);
-
---
--- Index pour la table `recycling`
---
-ALTER TABLE `recycling`
-  ADD PRIMARY KEY (`id`);
-
---
--- Index pour la table `waste`
---
-ALTER TABLE `waste`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `Id_material` (`id_material`);
-
---
--- AUTO_INCREMENT pour les tables déchargées
---
-
---
--- AUTO_INCREMENT pour la table `waste`
---
-ALTER TABLE `waste`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- Contraintes pour les tables déchargées
@@ -130,13 +105,13 @@ ALTER TABLE `waste`
 -- Contraintes pour la table `materials`
 --
 ALTER TABLE `materials`
-  ADD CONSTRAINT `materials_ibfk_1` FOREIGN KEY (`Id_recycling`) REFERENCES `recycling` (`Id`);
+  ADD CONSTRAINT `materials_ibfk_1` FOREIGN KEY (`id_recycling`) REFERENCES `recycling` (`id`);
 
 --
 -- Contraintes pour la table `waste`
 --
 ALTER TABLE `waste`
-  ADD CONSTRAINT `waste_ibfk_1` FOREIGN KEY (`Id_material`) REFERENCES `materials` (`Id`);
+  ADD CONSTRAINT `waste_ibfk_1` FOREIGN KEY (`id_material`) REFERENCES `materials` (`id`);
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
