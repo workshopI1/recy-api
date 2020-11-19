@@ -55,6 +55,22 @@ def getRecyclingTypeByIdMaterial(id):
 		return 'Erreur'
 	finally:
 		cur.close()
+		
+@app.route('/nameMaterial/<name>', methods=["GET"])
+def getRecyclingTypeByNameMaterial(name):
+try:
+    cur = mysql.connection.cursor()
+    cur.execute(
+	"SELECT type FROM recycling JOIN materials ON recycling.id = materials.id_recycling WHERE materials.name =%s",name)
+    res = cur.fetchone()
+    if res != None:
+	return jsonify(res), 200
+    else:
+	return 'Erreur'
+except Exception as e:
+    return 'Erreur'
+finally:
+    cur.close()		
 
 @app.route('/wastes', methods=["GET"])
 def getWastes():
