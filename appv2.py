@@ -2,7 +2,20 @@ from flask import Flask, request, jsonify
 from flask_mysqldb import MySQL
 import os
 
+import json
+import sqlite3 as sql
+import classify
+import base64
+import os
+import gc
+
+from flask_cors import CORS, cross_origin
+import json
+import env
+from classify import init
+
 app = Flask(__name__)
+CORS(app)
 
 #Conf db
 app.config['MYSQL_HOST'] = "localhost"
@@ -58,5 +71,36 @@ def getWastes():
 	finally:
 		cur.close()
 
+# health check
+@app.route('/status')
+def health_check():
+    return 'Running!'
+
+
+# Performing image Recognition on Image, sent as bytes via POST payload
+@app.route('/detect', methods=["POST"])
+def detect():
+    gc.collect()
+    print(request.data)
+    imgBytes = request.data
+
+    imgdata = base64.b64decode(imgBytes)
+    # with open("temp.png", 'wb') as f:
+    #     f.write(imgdata)
+    # f.close()
+    # print("successfully receieved image")
+
+    # Pass image bytes to classifier
+    result = classify.analyse(imgdata)
+
+    # Return results as neat JSON object, using
+    result = jsonify(result)
+    print(result.json)
+
+    response_data = result.json
+
+    return response_data
+
 if __name__ == "__main__":
+	init()
 	app.run(debug=True)

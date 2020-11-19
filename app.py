@@ -6,16 +6,18 @@ import base64
 import os
 import gc
 
+from flask_cors import CORS, cross_origin
 import json
 import env
 from classify import init
 
 app = Flask(__name__)
-
+cors = CORS(app)
+#app.config['CORS_HEADERS'] = 'Content-Type'
 
 @app.route('/')
 def hello_world():
-    return render_template('menu.html')
+    return {"hello": "world"}
 
 @app.route('/waste/get', methods=['GET'])
 def get_wastes():
@@ -80,9 +82,10 @@ def get_recycling_by_id(id):
 
 @app.route('/material/get/<barCode>', methods=['GET'])
 def get_material_by_barCode(barCode):
+    print(barCode)
     with sql.connect('workshop.db') as con:
         cur = con.cursor()
-        row = cur.execute("SELECT * FROM material WHERE barCode=%s;", [barCode]).fetchone()
+        row = cur.execute("SELECT * FROM material WHERE barCode = %s;", (barCode)).fetchone()
         return json.dumps(row)
 
 # health check
