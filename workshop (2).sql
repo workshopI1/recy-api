@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Hôte : 127.0.0.1
--- Généré le :  jeu. 19 nov. 2020 à 10:05
+-- Généré le :  jeu. 19 nov. 2020 à 14:10
 -- Version du serveur :  10.4.8-MariaDB
 -- Version de PHP :  7.3.11
 
@@ -40,9 +40,10 @@ CREATE TABLE `materials` (
 
 INSERT INTO `materials` (`id`, `name`, `id_recycling`) VALUES
 (1, 'carton', 1),
-(2, 'bouteille', 2),
+(2, 'bouteille verre', 2),
 (3, 'plastique souple', 3),
-(4, 'aluminium', 3);
+(4, 'aluminium', 3),
+(5, 'bouteille plastique', 1);
 
 -- --------------------------------------------------------
 
@@ -74,7 +75,7 @@ CREATE TABLE `waste` (
   `id` int(11) NOT NULL,
   `name` varchar(50) NOT NULL,
   `id_material` int(11) NOT NULL,
-  `barcode` varchar(50) NOT NULL
+  `barcode` varchar(50) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
@@ -84,7 +85,8 @@ CREATE TABLE `waste` (
 INSERT INTO `waste` (`id`, `name`, `id_material`, `barcode`) VALUES
 (1, 'pitch', 3, '5202462035'),
 (2, 'boite_cereale', 1, '552362462035'),
-(3, 'chouffe33', 4, '5554682462035');
+(3, 'chouffe33', 4, '5554682462035'),
+(4, 'jus innocent', 5, '5038862135443');
 
 --
 -- Index pour les tables déchargées
@@ -109,6 +111,16 @@ ALTER TABLE `recycling`
 ALTER TABLE `waste`
   ADD PRIMARY KEY (`id`),
   ADD KEY `Id_material` (`id_material`);
+
+--
+-- AUTO_INCREMENT pour les tables déchargées
+--
+
+--
+-- AUTO_INCREMENT pour la table `waste`
+--
+ALTER TABLE `waste`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- Contraintes pour les tables déchargées
