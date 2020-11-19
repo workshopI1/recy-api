@@ -28,7 +28,7 @@ mysql = MySQL(app)
 def getRecyclingTypeByBarcode(barcode):
 	try:
 		cur = mysql.connection.cursor()
-		cur.execute("SELECT type FROM recycling JOIN materials ON recycling.id = materials.id_recycling JOIN waste ON materials.id = waste.id_material WHERE waste.barcode=%s",[barcode])
+		cur.execute("SELECT type,materials.name FROM recycling JOIN materials ON recycling.id = materials.id_recycling JOIN waste ON materials.id = waste.id_material WHERE waste.barcode=%s",[barcode])
 		res = cur.fetchone()
 		cur.close()
 		if res != None:
@@ -59,7 +59,7 @@ def getRecyclingTypeByNameMaterial(name):
 	try:
 		cur = mysql.connection.cursor()
 		cur.execute(
-		"SELECT type FROM recycling JOIN materials ON recycling.id = materials.id_recycling WHERE materials.name =%s",name)
+		"SELECT type,materials.name FROM recycling JOIN materials ON recycling.id = materials.id_recycling WHERE materials.name =%s",name)
 		res = cur.fetchone()
 		if res != None:
 			return jsonify(res), 200
