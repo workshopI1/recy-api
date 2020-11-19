@@ -92,7 +92,7 @@ def getWastes():
 def getMaterials():
 	try:
 		cur = mysql.connection.cursor()
-		result = cur.execute("SELECT * FROM materials")
+		result = cur.execute("SELECT id,name FROM materials")
 		if result > 0 :
 			materialsDetails = cur.fetchall()
 			return jsonify(materialsDetails),200
