@@ -2,20 +2,7 @@ from flask import Flask, request, jsonify
 from flask_mysqldb import MySQL
 import os
 
-import json
-import sqlite3 as sql
-import classify
-import base64
-import os
-import gc
-
-from flask_cors import CORS, cross_origin
-import json
-import env
-from classify import init
-
 app = Flask(__name__)
-CORS(app)
 
 #Conf db
 app.config['MYSQL_HOST'] = "localhost"
@@ -41,12 +28,13 @@ def getRecyclingTypeByBarcode(barcode):
 	finally:
 		cur.close()
 
-@app.route('/idMaterial/<id>', methods=["GET"])
-def getRecyclingTypeByIdMaterial(id):
+		@app.route('/barcode/<barcode>', methods=["GET"])
+def getRecyclingTypeByBarcode(barcode):
 	try:
 		cur = mysql.connection.cursor()
-		cur.execute("SELECT type FROM recycling JOIN materials ON recycling.id = materials.id_recycling JOIN waste ON materials.id = waste.id_material WHERE id_material=%s",id)
+		cur.execute("SELECT type FROM recycling JOIN materials ON recycling.id = materials.id_recycling JOIN waste ON materials.id = waste.id_material WHERE waste.barcode=%s",[barcode])
 		res = cur.fetchone()
+		cur.close()
 		if res != None:
 			return jsonify(res),200
 		else:
@@ -56,21 +44,35 @@ def getRecyclingTypeByIdMaterial(id):
 	finally:
 		cur.close()
 		
-@app.route('/nameMaterial/<name>', methods=["GET"])
-def getRecyclingTypeByNameMaterial(name):
+@app.route('/add/Waste/', methods=["POST"])
+def addWaste():
+	name = request.form.get('name')
+	id_material = request.form.get('id_material')
 	try:
 		cur = mysql.connection.cursor()
-		cur.execute(
-		"SELECT type FROM recycling JOIN materials ON recycling.id = materials.id_recycling WHERE materials.name =%s",name)
-		res = cur.fetchone()
-		if res != None:
-			return jsonify(res), 200
-		else:
-			return 'Erreur'
+		cur.execute("INSERT INTO waste(name,id_material) VALUES (%s,%s)",[name,id_material])
+		mysql.connection.commit()
+		return 'Added'
 	except Exception as e:
-		return 'Erreur'
+		return e.__str__()
 	finally:
 		cur.close()
+		
+@app.route('/nameMaterial/<name>', methods=["GET"])
+def getRecyclingTypeByNameMaterial(name):
+try:
+    cur = mysql.connection.cursor()
+    cur.execute(
+	"SELECT type FROM recycling JOIN materials ON recycling.id = materials.id_recycling WHERE materials.name =%s",name)
+    res = cur.fetchone()
+    if res != None:
+	return jsonify(res), 200
+    else:
+	return 'Erreur'
+except Exception as e:
+    return 'Erreur'
+finally:
+    cur.close()		
 
 @app.route('/wastes', methods=["GET"])
 def getWastes():
@@ -87,36 +89,5 @@ def getWastes():
 	finally:
 		cur.close()
 
-# health check
-@app.route('/status')
-def health_check():
-    return 'Running!'
-
-
-# Performing image Recognition on Image, sent as bytes via POST payload
-@app.route('/detect', methods=["POST"])
-def detect():
-    gc.collect()
-    print(request.data)
-    imgBytes = request.data
-
-    imgdata = base64.b64decode(imgBytes)
-    # with open("temp.png", 'wb') as f:
-    #     f.write(imgdata)
-    # f.close()
-    # print("successfully receieved image")
-
-    # Pass image bytes to classifier
-    result = classify.analyse(imgdata)
-
-    # Return results as neat JSON object, using
-    result = jsonify(result)
-    print(result.json)
-
-    response_data = result.json
-
-    return response_data
-
 if __name__ == "__main__":
-	init()
 	app.run(debug=True)
