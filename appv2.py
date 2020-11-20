@@ -156,7 +156,7 @@ def detect():
             else:
                 return 'Erreur'
         except Exception as e:
-            return response_data
+            return 'Erreur'
         finally:
             cur.close()
     else:
