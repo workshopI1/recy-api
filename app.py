@@ -17,10 +17,10 @@ app = Flask(__name__)
 CORS(app)
 
 #Conf db
-app.config['MYSQL_HOST'] = "localhost"
-app.config['MYSQL_USER'] = "root"
-app.config['MYSQL_PASSWORD'] = ""
-app.config['MYSQL_DB'] = "Workshop"
+app.config['MYSQL_HOST'] = "eu-cdbr-west-03.cleardb.net"
+app.config['MYSQL_USER'] = "bacffaad1aecf4"
+app.config['MYSQL_PASSWORD'] = "2d325593"
+app.config['MYSQL_DB'] = "heroku_1b9b3cff2c0ce98"
 
 mysql = MySQL(app)
 
