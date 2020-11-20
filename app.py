@@ -1,4 +1,6 @@
-from flask import Flask, request, render_template, jsonify
+from flask import Flask, request, jsonify
+from flask_mysqldb import MySQL
+import os
 import json
 import sqlite3 as sql
 import classify
@@ -12,82 +14,95 @@ import env
 from classify import init
 
 app = Flask(__name__)
-cors = CORS(app)
-#app.config['CORS_HEADERS'] = 'Content-Type'
+CORS(app)
 
-@app.route('/')
-def hello_world():
-    return {"hello": "world"}
+#Conf db
+app.config['MYSQL_HOST'] = "localhost"
+app.config['MYSQL_USER'] = "root"
+app.config['MYSQL_PASSWORD'] = ""
+app.config['MYSQL_DB'] = "Workshop"
 
-@app.route('/waste/get', methods=['GET'])
-def get_wastes():
-    with sql.connect('workshop.db') as con:
-        con.row_factory = sql.Row
-        cur = con.cursor()
-        rows = cur.execute("SELECT w.Id, w.name, m.Id as id_mat, m.name as mat FROM waste w CROSS JOIN material m on w.id_material = m.Id").fetchall()
-        return json.dumps( [dict(row) for row in rows])
+mysql = MySQL(app)
 
-@app.route('/recycling/get', methods=['GET'])
-def get_recycling():
-    with sql.connect('workshop.db') as con:
-        con.row_factory = sql.Row
-        cur = con.cursor()
-        rows = cur.execute("SELECT * FROM recycling").fetchall()
-        return json.dumps([dict(row) for row in rows])
+@app.route('/barcode/<barcode>', methods=["GET"])
+def getRecyclingTypeByBarcode(barcode):
+	try:
+		cur = mysql.connection.cursor()
+		cur.execute("SELECT type,materials.name,waste.name FROM recycling JOIN materials ON recycling.id = materials.id_recycling JOIN waste ON materials.id = waste.id_material WHERE waste.barcode=%s",[barcode])
+		res = cur.fetchone()
+		final=json.dumps({"name": res[2], "material": res[1], "trash": res[0]}, sort_keys=True)
+		cur.close()
+		if res != None:
+			return final,200
+		else:
+			return 'Erreur'
+	except Exception as e:
+		return 'Erreur'
+	finally:
+		cur.close()
+		
+@app.route('/add/Waste/', methods=["POST"])
+def addWaste():
+	json_data = request.get_json()
+	name = json_data['name']
+	id_material = json_data['id_material']
+	barcode = json_data['barcode']
+	try:
+		cur = mysql.connection.cursor()
+		cur.execute("INSERT INTO waste(name,id_material,barcode) VALUES (%s,%s,%s)",[name,id_material,barcode])
+		mysql.connection.commit()
+		return 'Added'
+	except Exception as e:
+		return e.__str__()
+	finally:
+		cur.close()
+		
+@app.route('/idMaterial/<id>', methods=["GET"])
+def getRecyclingTypeByIdMaterial(id):
+	try:
+		cur = mysql.connection.cursor()
+		cur.execute("SELECT type,materials.name,waste.name FROM recycling JOIN materials ON recycling.id = materials.id_recycling JOIN waste ON materials.id = waste.id_material WHERE id_material=%s",id)
+		res = cur.fetchone()
+		final=json.dumps({"name": res[2], "material": res[1], "trash": res[0]}, sort_keys=True)
+		if res != None:
+			return final,200
+		else:
+			return 'Erreur'
+	except Exception as e:
+		return 'Erreur'
+	finally:
+		cur.close()
 
-@app.route('/material/get', methods=['GET'])
-def get_materials():
-    with sql.connect('workshop.db') as con:
-        con.row_factory = sql.Row
-        cur = con.cursor()
-        rows = cur.execute("SELECT m.Id, m.name, m.barCode, r.Id as id_recycling, r.name as recycling FROM material m  CROSS JOIN recycling r on m.id_recycling = r.Id").fetchall()
-        return json.dumps([dict(row) for row in rows])
+@app.route('/wastes', methods=["GET"])
+def getWastes():
+	try:
+		cur = mysql.connection.cursor()
+		result = cur.execute("SELECT * FROM waste")
+		if result > 0 :
+			wasteDetails = cur.fetchall()
+			return jsonify(wasteDetails),200
+		else:
+			return 'Erreur'
+	except Exception as e:
+		return 'Erreur'
+	finally:
+		cur.close()
 
-@app.route('/material/add', methods=['POST'])
-def add_material():
-    with sql.connect('workshop.db') as con:
-        name = request.args.get('name')
-        barCode = request.args.get('barCode')
-        id_recycling = request.args.get('idRecycling')
-        cur = con.cursor()
-        cur.execute("INSERT INTO material (name, barCode, id_recycling) VALUES(?,?,?)", (name, barCode, id_recycling))
-        con.commit()
-        return ('row added')
-
-@app.route('/waste/add', methods=['POST'])
-def add_waste():
-    with sql.connect('workshop.db') as con:
-        name = request.args.get('name')
-        id_material = request.args.get('idMaterial')
-        cur = con.cursor()
-        cur.execute("INSERT INTO waste (name, id_material) VALUES(?,?)", (name,id_material))
-        con.commit()
-        return ('row added')
-
-@app.route('/recycling/add', methods=['POST'])
-def add_recycling():
-    with sql.connect('workshop.db') as con:
-        name = request.args.get('name')
-        cur = con.cursor()
-        cur.execute("INSERT INTO recycling (name) VALUES (?)", (name))
-        con.commit()
-        return ('row added')
-
-@app.route('/recycling/get/<id>', methods=['GET'])
-def get_recycling_by_id(id):
-    with sql.connect('workshop.db') as con:
-        cur = con.cursor()
-        row = cur.execute("SELECT * FROM recycling WHERE Id=%s;", id).fetchone()
-        return json.dumps(row)
-
-@app.route('/material/get/<barCode>', methods=['GET'])
-def get_material_by_barCode(barCode):
-    print(barCode)
-    with sql.connect('workshop.db') as con:
-        cur = con.cursor()
-        row = cur.execute("SELECT * FROM material WHERE barCode = %s;", (barCode)).fetchone()
-        return json.dumps(row)
-
+@app.route('/materials', methods=["GET"])
+def getMaterials():
+	try:
+		cur = mysql.connection.cursor()
+		result = cur.execute("SELECT id,name FROM materials")
+		if result > 0 :
+			materialsDetails = cur.fetchall()
+			return jsonify(materialsDetails),200
+		else:
+			return 'Erreur'
+	except Exception as e:
+		return 'Erreur'
+	finally:
+		cur.close()
+		
 # health check
 @app.route('/status')
 def health_check():
@@ -98,8 +113,8 @@ def health_check():
 @app.route('/detect', methods=["POST"])
 def detect():
     gc.collect()
-    print(request.data)
-    imgBytes = request.data
+    json_data = request.get_json()
+    imgBytes = json_data['data']
 
     imgdata = base64.b64decode(imgBytes)
     # with open("temp.png", 'wb') as f:
@@ -116,8 +131,37 @@ def detect():
 
     response_data = result.json
 
-    return response_data
+    materialName = max(response_data.keys(), key=(lambda k: response_data[k]))
+    score = response_data[materialName]
 
-if __name__ == '__main__':
-    init()
-    app.run()
+    listeMateriaux = {"cardboard":"carton",
+                     "glass":"verre",
+                     "trash":"déchet non recyclable",
+                     "metal":"aluminium",
+                     "plastic":"plastique",
+                     "paper":"papier"
+                    }
+
+    materiauNom = listeMateriaux[materialName]
+
+    if score > 0.6 and materiauNom != None:
+        try:
+            cur = mysql.connection.cursor()
+            cur.execute(
+                "SELECT type,materials.name FROM recycling JOIN materials ON recycling.id = materials.id_recycling WHERE materials.name=%s",[materiauNom])
+            typeRecycling = cur.fetchone()
+            if typeRecycling != None:
+                #return jsonify(typeRecycling), 200
+                return json.dumps({"material": typeRecycling[1], "trash": typeRecycling[0]}, sort_keys=True), 200
+            else:
+                return 'Erreur'
+        except Exception as e:
+            return 'Erreur'
+        finally:
+            cur.close()
+    else:
+        return "Materiau non reconnu"
+
+if __name__ == "__main__":
+	init()
+	app.run(debug=True)
