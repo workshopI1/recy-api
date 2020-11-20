@@ -113,8 +113,8 @@ def health_check():
 @app.route('/detect', methods=["POST"])
 def detect():
     gc.collect()
-    print(request.data)
-    imgBytes = request.data
+    json_data = request.get_json()
+    imgBytes = json_data['data']
 
     imgdata = base64.b64decode(imgBytes)
     # with open("temp.png", 'wb') as f:
@@ -148,15 +148,15 @@ def detect():
         try:
             cur = mysql.connection.cursor()
             cur.execute(
-                "SELECT type FROM recycling JOIN materials ON recycling.id = materials.id_recycling WHERE materials.name =%s",materiauNom)
+                "SELECT type,materials.name FROM recycling JOIN materials ON recycling.id = materials.id_recycling WHERE materials.name=%s",[materiauNom])
             typeRecycling = cur.fetchone()
             if typeRecycling != None:
                 #return jsonify(typeRecycling), 200
-                return typeRecycling, 200
+                return json.dumps({"material": typeRecycling[1], "trash": typeRecycling[0]}, sort_keys=True), 200
             else:
                 return 'Erreur'
         except Exception as e:
-            return 'Erreur'
+            return response_data
         finally:
             cur.close()
     else:
