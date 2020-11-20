@@ -22,8 +22,6 @@ app.config['MYSQL_USER'] = "root"
 app.config['MYSQL_PASSWORD'] = ""
 app.config['MYSQL_DB'] = "Workshop"
 
-port = int(os.environ.get('PORT', 6000))
-
 mysql = MySQL(app)
 
 @app.route('/barcode/<barcode>', methods=["GET"])
@@ -166,4 +164,5 @@ def detect():
 
 if __name__ == "__main__":
 	init()
-	app.run(host='0.0.0.0', port=port, debug=True)
+	port = int(os.environ.get('PORT', 6000))
+	app.run(debug=True, port=port)
